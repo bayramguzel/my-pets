@@ -1,0 +1,12 @@
+[
+  {"species":"Dog","breed":"Labrador Retriever","size":"Large","lifeExpectancy":"12","temperament":"Friendly, Active, Outgoing"},
+  {"species":"Dog","breed":"German Shepherd","size":"Large","lifeExpectancy":"11","temperament":"Confident, Courageous, Smart"},
+  {"species":"Dog","breed":"Golden Retriever","size":"Large","lifeExpectancy":"12","temperament":"Intelligent, Friendly, Devoted"},
+  {"species":"Cat","breed":"British Shorthair","size":"Medium","lifeExpectancy":"15","temperament":"Calm, Easygoing, Loyal"},
+  {"species":"Cat","breed":"Siamese","size":"Medium","lifeExpectancy":"16","temperament":"Vocal, Affectionate, Active"},
+  {"species":"Cat","breed":"Maine Coon","size":"Large","lifeExpectancy":"13","temperament":"Gentle, Friendly, Intelligent"},
+  {"species":"Bird","breed":"Budgerigar","size":"Small","lifeExpectancy":"8","temperament":"Social, Vocal, Playful"},
+  {"species":"Bird","breed":"Cockatiel","size":"Small","lifeExpectancy":"15","temperament":"Gentle, Affectionate, Smart"},
+  {"species":"Rabbit","breed":"Holland Lop","size":"Small","lifeExpectancy":"10","temperament":"Calm, Curious, Friendly"},
+  {"species":"Rabbit","breed":"Netherland Dwarf","size":"Small","lifeExpectancy":"9","temperament":"Lively, Alert, Gentle"}
+]
