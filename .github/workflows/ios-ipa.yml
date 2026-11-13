@@ -14,7 +14,7 @@ on:
 jobs:
   build-ios:
     name: Build unsigned IPA
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
 
     steps:
@@ -27,6 +27,11 @@ jobs:
           flutter-version: '3.44.6'
           channel: stable
           cache: true
+
+      - name: Show toolchain
+        run: |
+          flutter --version
+          xcodebuild -version
 
       - name: Install dependencies
         run: flutter pub get
