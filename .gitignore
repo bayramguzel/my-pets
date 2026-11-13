@@ -96,3 +96,8 @@ GoogleService-Info.plist
 android.backup/
 .migration_backup/
 *.backup_*
+
+# Built installers
+*.ipa
+*.apk
+*.aab
