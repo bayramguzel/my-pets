@@ -12,6 +12,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appTitle => 'Evcil Hayvanlarım';
 
   @override
+  String get appSubtitle => 'Sevimli dostlarınızın bakımını kolaylaştırın';
+
+  @override
+  String get visitWebsite => '41 Software Web Sitesi';
+
+  @override
   String errorSelectingImage(Object error) {
     return 'Resim seçilirken hata oluştu: $error';
   }
@@ -71,7 +77,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get waterRequirement => 'Su İhtiyacı';
 
   @override
-  String get myPets => 'Hayvanlarım';
+  String get myPets => 'Can Dostlarım';
 
   @override
   String get explore => 'Keşfet';
@@ -80,7 +86,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settings => 'Ayarlar';
 
   @override
-  String get addPet => 'Hayvan Ekle';
+  String get addPet => 'Can Dost Ekle';
 
   @override
   String get petName => 'Hayvan Adı';
@@ -1998,4 +2004,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get pleaseEnterPreferenceName => 'Lütfen mama adını girin';
+
+  @override
+  String get regular => 'Normal';
+
+  @override
+  String get prescription => 'Reçeteli';
+
+  @override
+  String get raw => 'Çiğ';
+
+  @override
+  String get homemade => 'Ev Yapımı';
+
+  @override
+  String get aggressive => 'Agresif';
 }

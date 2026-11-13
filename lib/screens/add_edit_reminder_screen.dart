@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -88,7 +89,7 @@ class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
                         DateFormat('dd/MM/yyyy').format(_selectedDate),
                       ),
                       onTap: () async {
-                        final pickedDate = await showDatePicker(
+                        final pickedDate = await showAdaptiveDatePicker(
                           context: context,
                           initialDate: _selectedDate,
                           firstDate: DateTime.now(),
@@ -109,7 +110,7 @@ class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
                       title: Text(l10n.reminderTime),
                       subtitle: Text(_selectedTime.format(context)),
                       onTap: () async {
-                        final pickedTime = await showTimePicker(
+                        final pickedTime = await showAdaptiveTimePicker(
                           context: context,
                           initialTime: _selectedTime,
                         );

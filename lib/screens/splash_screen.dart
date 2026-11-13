@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
@@ -12,38 +14,51 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late VideoPlayerController _controller;
+  Timer? _fallbackTimer;
   bool _initialized = false;
   bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset('assets/splash.mp4')
-      ..initialize().then((_) {
-        setState(() {
-          _initialized = true;
-        });
-        _controller.setVolume(0.0); // Sessiz (Mute)
-        _controller.setLooping(false);
-        _controller.play();
 
-        // Video bittiğinde otomatik geçiş yap
-        _controller.addListener(() {
-          if (_controller.value.position >= _controller.value.duration) {
-            _navigateToHome();
-          }
+    _controller = VideoPlayerController.asset('assets/splash.mp4');
+    _controller
+        .initialize()
+        .then((_) {
+          if (!mounted) return;
+          setState(() {
+            _initialized = true;
+          });
+          _controller.setVolume(0.0); // Sessiz (Mute)
+          _controller.setLooping(false);
+          _controller.play();
+          _controller.addListener(_onVideoProgress);
+        })
+        .catchError((Object error) {
+          // Do not leave iOS users stuck on the splash screen when the video
+          // cannot be decoded.
+          debugPrint('Splash video could not be initialized: $error');
+          _navigateToHome();
         });
-      });
 
-    // 3 saniye sonra zorunlu geçiş yap (Kullanıcı isteği: 2-3 saniye)
-    Future.delayed(const Duration(seconds: 3), () {
+    // Guarantee that the app always reaches the home screen.
+    _fallbackTimer = Timer(const Duration(seconds: 10), _navigateToHome);
+  }
+
+  void _onVideoProgress() {
+    if (!_controller.value.isInitialized) return;
+    final position = _controller.value.position;
+    final duration = _controller.value.duration;
+    if (duration > Duration.zero && position >= duration) {
       _navigateToHome();
-    });
+    }
   }
 
   void _navigateToHome() {
     if (mounted && !_navigated) {
       _navigated = true;
+      _fallbackTimer?.cancel();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
       );
@@ -52,6 +67,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void dispose() {
+    _fallbackTimer?.cancel();
+    _controller.removeListener(_onVideoProgress);
     _controller.dispose();
     super.dispose();
   }

@@ -106,6 +106,18 @@ abstract class AppLocalizations {
   /// **'My Pets'**
   String get appTitle;
 
+  /// No description provided for @appSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Simplify your pet care routine'**
+  String get appSubtitle;
+
+  /// No description provided for @visitWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'41 Software Website'**
+  String get visitWebsite;
+
   /// No description provided for @errorSelectingImage.
   ///
   /// In en, this message translates to:
@@ -3837,6 +3849,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter food name'**
   String get pleaseEnterPreferenceName;
+
+  /// No description provided for @regular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get regular;
+
+  /// No description provided for @prescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription'**
+  String get prescription;
+
+  /// No description provided for @raw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw'**
+  String get raw;
+
+  /// No description provided for @homemade.
+  ///
+  /// In en, this message translates to:
+  /// **'Homemade'**
+  String get homemade;
+
+  /// No description provided for @aggressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggressive'**
+  String get aggressive;
 }
 
 class _AppLocalizationsDelegate

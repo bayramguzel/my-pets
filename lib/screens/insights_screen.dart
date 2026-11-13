@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import '../utils/share_utils.dart';
 import '../utils/export_util.dart';
 import '../l10n/app_localizations.dart';
 import '../models/pet_models.dart';
@@ -64,7 +67,23 @@ class _InsightsScreenState extends State<InsightsScreen> {
     AppLocalizations l10n,
   ) async {
     try {
-      await ExportUtil.exportActivitiesAndExpenses(petData);
+      final result = await ExportUtil.exportActivitiesAndExpenses(petData);
+      if (!mounted) return;
+      if (Platform.isIOS) {
+        // iOS users cannot browse the app's temporary directory, so offer the
+        // CSV files through the system share sheet (Files, Mail, AirDrop...).
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              XFile(result.activitiesFile.path),
+              XFile(result.expensesFile.path),
+            ],
+            subject: l10n.exportData,
+            sharePositionOrigin: sharePositionOriginFor(context),
+          ),
+        );
+        return;
+      }
       final dir = await getTemporaryDirectory();
       if (!mounted) return;
       ScaffoldMessenger.of(

@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "My Pets uses the camera so you can take a photo of your pet and use it on the pet's profile. Photos stay on this device.";
+"NSPhotoLibraryUsageDescription" = "My Pets needs access to your photo library so you can choose a photo of your pet for its profile. Photos stay on this device.";

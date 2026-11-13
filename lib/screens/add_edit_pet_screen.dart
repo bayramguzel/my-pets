@@ -1,11 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:my_pets/l10n/app_localizations.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -182,16 +186,16 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                         colors: [
                           Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.2),
+                          ).colorScheme.primary.withValues(alpha: 0.2),
                           Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.05),
+                          ).colorScheme.primary.withValues(alpha: 0.05),
                         ],
                       ),
                       border: Border.all(color: Colors.white, width: 3),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -553,6 +557,36 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   void _showImagePicker() {
     final l10n = AppLocalizations.of(context)!;
 
+    if (Platform.isIOS) {
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (sheetContext) => CupertinoActionSheet(
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _pickImage(ImageSource.camera);
+              },
+              child: Text(l10n.takePicture),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _pickImage(ImageSource.gallery);
+              },
+              child: Text(l10n.chooseFromGallery),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(sheetContext),
+            child: Text(l10n.cancel),
+          ),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -583,26 +617,62 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: source);
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: source);
 
-    if (image != null) {
+      if (image == null) return;
+
+      // image_picker keeps the selected photo in the temporary directory,
+      // which iOS may purge at any time. Copy it into the app's documents
+      // directory so the pet photo is kept with the pet record.
+      final documentsDirectory = await getApplicationDocumentsDirectory();
+      final photosDirectory = Directory(
+        path.join(documentsDirectory.path, 'pet_photos'),
+      );
+      if (!await photosDirectory.exists()) {
+        await photosDirectory.create(recursive: true);
+      }
+      final fileName =
+          'pet_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
+      final savedImage = await File(
+        image.path,
+      ).copy(path.join(photosDirectory.path, fileName));
+
+      if (!mounted) return;
       setState(() {
-        _imageFile = File(image.path);
-        _photoUrl = image.path;
+        _imageFile = savedImage;
+        _photoUrl = savedImage.path;
       });
+    } catch (e) {
+      debugPrint('Error selecting image: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorSelectingImage(e))));
     }
   }
 
-  Widget _buildImageFromPath(String path) {
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(path, fit: BoxFit.cover);
+  Widget _buildImageFromPath(String photoPath) {
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return Image.network(
+        photoPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.pets, size: 64, color: Colors.grey[600]),
+      );
     }
-    return Image.file(File(path), fit: BoxFit.cover);
+    return Image.file(
+      File(photoPath),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          Icon(Icons.pets, size: 64, color: Colors.grey[600]),
+    );
   }
 
   Future<void> _selectBirthDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _birthDate ?? DateTime.now(),
       firstDate: DateTime(2000),
@@ -617,7 +687,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   }
 
   Future<void> _selectNextAppointment() async {
-    final DateTime? pickedDate = await showDatePicker(
+    final DateTime? pickedDate = await showAdaptiveDatePicker(
       context: context,
       initialDate: _nextAppointment ?? DateTime.now(),
       firstDate: DateTime.now(),
@@ -625,7 +695,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     );
 
     if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
+      final TimeOfDay? pickedTime = await showAdaptiveTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_nextAppointment ?? DateTime.now()),
       );

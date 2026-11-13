@@ -19,10 +19,10 @@
   "humanAge": "İnsan Yaşı",
   "dailyCalories": "Günlük Kalori Hedefi",
   "waterRequirement": "Su İhtiyacı",
-  "myPets": "Hayvanlarım",
+  "myPets": "Can Dostlarım",
   "explore": "Keşfet",
   "settings": "Ayarlar",
-  "addPet": "Hayvan Ekle",
+  "addPet": "Can Dost Ekle",
   "petName": "Hayvan Adı",
   "petType": "Hayvan Türü",
   "breed": "Cins",
@@ -635,5 +635,6 @@
   "deleteFoodPreference": "Tercihi Sil",
   "dislikedFoods": "Sevmediği Mamaları",
   "addDislikedFood": "Sevmediği Mama Ekle",
-  "pleaseEnterPreferenceName": "Lütfen mama adını girin"
+  "pleaseEnterPreferenceName": "Lütfen mama adını girin",
+  "visitWebsite": "41 Software Web Sitesi"
 }

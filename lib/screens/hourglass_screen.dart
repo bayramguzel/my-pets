@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import '../utils/adaptive_dialogs.dart';
 import 'dart:math' as math;
 
 class HourglassScreen extends StatefulWidget {
@@ -124,18 +125,11 @@ class _HourglassScreenState extends State<HourglassScreen>
 
     // Show completion dialog
     if (mounted) {
-      showDialog(
+      showAdaptiveMessage(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('⏰ Time\'s Up!'),
-          content: const Text('Your hourglass timer has completed.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+        title: '⏰ Time\'s Up!',
+        message: 'Your hourglass timer has completed.',
+        buttonLabel: 'OK',
       );
     }
   }

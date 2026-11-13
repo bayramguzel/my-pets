@@ -12,6 +12,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'My Pets';
 
   @override
+  String get appSubtitle => 'Simplify your pet care routine';
+
+  @override
+  String get visitWebsite => '41 Software Website';
+
+  @override
   String errorSelectingImage(Object error) {
     return 'Error selecting image: $error';
   }
@@ -1995,4 +2001,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseEnterPreferenceName => 'Please enter food name';
+
+  @override
+  String get regular => 'Regular';
+
+  @override
+  String get prescription => 'Prescription';
+
+  @override
+  String get raw => 'Raw';
+
+  @override
+  String get homemade => 'Homemade';
+
+  @override
+  String get aggressive => 'Aggressive';
 }

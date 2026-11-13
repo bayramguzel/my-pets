@@ -629,5 +629,12 @@
   "deleteFoodPreference": "Vorliebe löschen",
   "dislikedFoods": "Ungemochtes Futter",
   "addDislikedFood": "Ungemochtes Futter hinzufügen",
-  "pleaseEnterPreferenceName": "Bitte Futterbezeichnung eingeben"
+  "pleaseEnterPreferenceName": "Bitte Futterbezeichnung eingeben",
+  "appSubtitle": "Vereinfachen Sie Ihre Haustierpflege",
+  "visitWebsite": "41 Software Website",
+  "regular": "Regulär",
+  "prescription": "Rezeptpflichtig",
+  "raw": "Roh",
+  "homemade": "Selbstgemacht",
+  "aggressive": "Aggressiv"
 }

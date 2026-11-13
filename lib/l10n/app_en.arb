@@ -1,6 +1,8 @@
 {
   "@@locale": "en",
   "appTitle": "My Pets",
+  "appSubtitle": "Simplify your pet care routine",
+  "visitWebsite": "41 Software Website",
   "errorSelectingImage": "Error selecting image: {error}",
   "popularPetTypes": "Popular Pet Types:",
   "draftFound": "Draft Found",
@@ -632,5 +634,10 @@
   "deleteFoodPreference": "Delete preference",
   "dislikedFoods": "Disliked Foods",
   "addDislikedFood": "Add Disliked Food",
-  "pleaseEnterPreferenceName": "Please enter food name"
+  "pleaseEnterPreferenceName": "Please enter food name",
+  "regular": "Regular",
+  "prescription": "Prescription",
+  "raw": "Raw",
+  "homemade": "Homemade",
+  "aggressive": "Aggressive"
 }

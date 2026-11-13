@@ -166,7 +166,7 @@ class _AddEditFoodPreferenceScreenState
                           ],
                         ),
                         selected: _rating == r,
-                        selectedColor: _ratingColor(r).withOpacity(0.25),
+                        selectedColor: _ratingColor(r).withValues(alpha: 0.25),
                         onSelected: (_) => setState(() => _rating = r),
                       ),
                     )

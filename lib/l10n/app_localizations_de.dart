@@ -12,6 +12,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appTitle => 'Meine Haustiere';
 
   @override
+  String get appSubtitle => 'Vereinfachen Sie Ihre Haustierpflege';
+
+  @override
+  String get visitWebsite => '41 Software Website';
+
+  @override
   String errorSelectingImage(Object error) {
     return 'Fehler beim Auswählen des Bildes: $error';
   }
@@ -2005,4 +2011,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pleaseEnterPreferenceName => 'Bitte Futterbezeichnung eingeben';
+
+  @override
+  String get regular => 'Regulär';
+
+  @override
+  String get prescription => 'Rezeptpflichtig';
+
+  @override
+  String get raw => 'Roh';
+
+  @override
+  String get homemade => 'Selbstgemacht';
+
+  @override
+  String get aggressive => 'Aggressiv';
 }

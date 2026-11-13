@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
 import 'package:my_pets/utils/localization_utils.dart';
+import 'package:my_pets/utils/pastel_colors.dart';
 import '../providers/pet_provider.dart';
 import '../widgets/banner_ad_widget.dart';
 
@@ -149,7 +149,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             colors: [
                               Theme.of(
                                 context,
-                              ).colorScheme.surface.withOpacity(0),
+                              ).colorScheme.surface.withValues(alpha: 0),
                               Theme.of(context).colorScheme.surface,
                             ],
                           ),
@@ -215,26 +215,31 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 );
               }
 
-              // Build list with banner ads inserted
+              // Build list with promotional banner inserted
               List<Widget> listItems = [];
 
               // Add top banner
               listItems.add(
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: BannerAdWidget(adSize: AdSize.fullBanner),
+                  child: BannerAdWidget(),
                 ),
               );
 
               for (int i = 0; i < filteredArticles.length; i++) {
-                listItems.add(ExploreArticleCard(article: filteredArticles[i]));
+                listItems.add(
+                  ExploreArticleCard(
+                    article: filteredArticles[i],
+                    cardIndex: i,
+                  ),
+                );
 
                 // Add banner every 3 articles
                 if ((i + 1) % 3 == 0 && i != filteredArticles.length - 1) {
                   listItems.add(
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: BannerAdWidget(adSize: AdSize.fullBanner),
+                      child: BannerAdWidget(),
                     ),
                   );
                 }
@@ -251,6 +256,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   Widget _buildCategoryChip(String category, String label, String emoji) {
     final isSelected = _selectedCategory == category;
+    final theme = Theme.of(context);
     final color = _getCategoryColor(category);
 
     return Padding(
@@ -259,16 +265,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
         selected: isSelected,
         label: Text(label),
         avatar: Text(emoji),
-        selectedColor: color.withOpacity(0.2),
+        selectedColor: isSelected
+            ? color.withValues(alpha: 0.2)
+            : theme.colorScheme.surface,
         checkmarkColor: color,
         labelStyle: TextStyle(
-          color: isSelected ? color : Colors.black87,
+          color: isSelected ? color : theme.colorScheme.onSurface,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: isSelected ? color : Colors.grey.shade300,
+            color: isSelected ? color : theme.colorScheme.outlineVariant,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -284,19 +292,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
 class ExploreArticleCard extends StatelessWidget {
   final ExploreArticle article;
+  final int cardIndex;
 
-  const ExploreArticleCard({super.key, required this.article});
+  const ExploreArticleCard({
+    super.key,
+    required this.article,
+    this.cardIndex = 0,
+  });
 
-  Widget _buildPlaceholder(Color categoryColor, String emoji) {
+  Widget _buildPlaceholder(Color categoryColor, String emoji, Color cardColor) {
     return Container(
       height: 180,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            categoryColor.withValues(alpha: 0.3),
-            categoryColor.withValues(alpha: 0.1),
-          ],
+          colors: [categoryColor.withValues(alpha: 0.25), cardColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -308,9 +318,9 @@ class ExploreArticleCard extends StatelessWidget {
             scaleEmoji(emoji, size: 60),
             const SizedBox(height: 8),
             Icon(
-              Icons.image_not_supported_outlined,
-              color: categoryColor.withValues(alpha: 0.5),
-              size: 24,
+              Icons.article_outlined,
+              color: categoryColor.withValues(alpha: 0.7),
+              size: 26,
             ),
           ],
         ),
@@ -383,20 +393,29 @@ class ExploreArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoryColor = _getCategoryColor(article.categoryKey);
+    final cardColor = PastelColors.getCardColor(cardIndex, isDark: isDark);
+    final borderColor = PastelColors.getBorderColor(cardIndex, isDark: isDark);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      elevation: 3.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      elevation: 2.0,
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18.0),
+        side: BorderSide(color: borderColor, width: 1.2),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(18.0),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute<void>(
-              builder: (BuildContext context) =>
-                  ExploreArticleDetailScreen(article: article),
+              builder: (BuildContext context) => ExploreArticleDetailScreen(
+                article: article,
+                cardIndex: cardIndex,
+              ),
             ),
           );
         },
@@ -407,7 +426,7 @@ class ExploreArticleCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16.0),
+                    top: Radius.circular(18.0),
                   ),
                   child:
                       article.imageUrl.isEmpty ||
@@ -415,6 +434,7 @@ class ExploreArticleCard extends StatelessWidget {
                       ? _buildPlaceholder(
                           categoryColor,
                           _getCategoryEmoji(article.categoryKey),
+                          cardColor,
                         )
                       : Image.network(
                           article.imageUrl,
@@ -426,7 +446,7 @@ class ExploreArticleCard extends StatelessWidget {
                             return Container(
                               height: 180,
                               width: double.infinity,
-                              color: Colors.grey[200],
+                              color: cardColor,
                               child: Center(
                                 child: CircularProgressIndicator(
                                   value:
@@ -442,6 +462,7 @@ class ExploreArticleCard extends StatelessWidget {
                               _buildPlaceholder(
                                 categoryColor,
                                 _getCategoryEmoji(article.categoryKey),
+                                cardColor,
                               ),
                         ),
                 ),
@@ -458,7 +479,7 @@ class ExploreArticleCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -495,7 +516,7 @@ class ExploreArticleCard extends StatelessWidget {
                     getLocalizedTitle(context, article.titleKey),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      height: 1.2,
+                      height: 1.25,
                     ),
                   ),
                   const SizedBox(height: 8.0),
@@ -504,8 +525,10 @@ class ExploreArticleCard extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[700],
-                      height: 1.4,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.black87.withValues(alpha: 0.75),
+                      height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 12.0),
@@ -518,7 +541,10 @@ class ExploreArticleCard extends StatelessWidget {
                             context,
                             MaterialPageRoute<void>(
                               builder: (BuildContext context) =>
-                                  ExploreArticleDetailScreen(article: article),
+                                  ExploreArticleDetailScreen(
+                                    article: article,
+                                    cardIndex: cardIndex,
+                                  ),
                             ),
                           );
                         },
@@ -526,6 +552,9 @@ class ExploreArticleCard extends StatelessWidget {
                         label: Text(l10n.readMore),
                         style: TextButton.styleFrom(
                           foregroundColor: categoryColor,
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -542,19 +571,21 @@ class ExploreArticleCard extends StatelessWidget {
 
 class ExploreArticleDetailScreen extends StatelessWidget {
   final ExploreArticle article;
+  final int cardIndex;
 
-  const ExploreArticleDetailScreen({super.key, required this.article});
+  const ExploreArticleDetailScreen({
+    super.key,
+    required this.article,
+    this.cardIndex = 0,
+  });
 
-  Widget _buildPlaceholder(Color categoryColor, String emoji) {
+  Widget _buildPlaceholder(Color categoryColor, String emoji, Color cardColor) {
     return Container(
       height: 250,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            categoryColor.withValues(alpha: 0.3),
-            categoryColor.withValues(alpha: 0.1),
-          ],
+          colors: [categoryColor.withValues(alpha: 0.25), cardColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -623,8 +654,11 @@ class ExploreArticleDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoryColor = _getCategoryColor(article.categoryKey);
     final emoji = _getCategoryEmoji(article.categoryKey);
+    final cardColor = PastelColors.getCardColor(cardIndex, isDark: isDark);
+    final borderColor = PastelColors.getBorderColor(cardIndex, isDark: isDark);
 
     return Scaffold(
       appBar: AppBar(title: Text(getLocalizedTitle(context, article.titleKey))),
@@ -634,40 +668,69 @@ class ExploreArticleDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
+              borderRadius: BorderRadius.circular(16.0),
               child:
                   article.imageUrl.isEmpty ||
                       article.imageUrl.contains('placeholder')
-                  ? _buildPlaceholder(categoryColor, emoji)
+                  ? _buildPlaceholder(categoryColor, emoji, cardColor)
                   : Image.network(
                       article.imageUrl,
                       height: 250,
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
-                          _buildPlaceholder(categoryColor, emoji),
+                          _buildPlaceholder(categoryColor, emoji, cardColor),
                     ),
             ),
-            const SizedBox(height: 20.0),
-            Text(
-              getLocalizedCategory(context, article.categoryKey),
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              getLocalizedTitle(context, article.titleKey),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 16.0),
-            Text(
-              getLocalizedFullContent(context, article.contentKey),
-              style: Theme.of(context).textTheme.bodyLarge,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor, width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: categoryColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '$emoji ${getLocalizedCategory(context, article.categoryKey)}',
+                          style: const TextStyle(
+                            fontSize: 13.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12.0),
+                  Text(
+                    getLocalizedTitle(context, article.titleKey),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    getLocalizedFullContent(context, article.contentKey),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.6),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

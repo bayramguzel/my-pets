@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
 import 'package:my_pets/utils/localization_utils.dart';
 import 'dart:io';
+import '../utils/adaptive_dialogs.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
@@ -749,38 +751,21 @@ class _PetDetailScreenState extends State<PetDetailScreen>
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
+  Future<void> _showDeleteConfirmation(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
 
-    showDialog(
+    final confirmed = await showAdaptiveConfirm(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(l10n.delete),
-          content: Text(l10n.deletePetConfirmation(widget.pet.name)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel),
-            ),
-            TextButton(
-              onPressed: () {
-                Provider.of<PetData>(
-                  context,
-                  listen: false,
-                ).deletePet(widget.pet.id);
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close pet detail screen
-              },
-              child: Text(
-                l10n.delete,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
+      title: l10n.delete,
+      message: l10n.deletePetConfirmation(widget.pet.name),
+      cancelLabel: l10n.cancel,
+      confirmLabel: l10n.delete,
+      destructive: true,
     );
+
+    if (!confirmed || !mounted) return;
+    Provider.of<PetData>(context, listen: false).deletePet(widget.pet.id);
+    Navigator.pop(context); // Close pet detail screen
   }
 
   void _addActivity(BuildContext context) {
@@ -1122,7 +1107,9 @@ class _PetDetailScreenState extends State<PetDetailScreen>
     if (pet.weight == null) return const SizedBox.shrink();
 
     return Card(
-      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+      color: Theme.of(
+        context,
+      ).colorScheme.primaryContainer.withValues(alpha: 0.4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1258,6 +1245,38 @@ class _PetDetailScreenState extends State<PetDetailScreen>
 
   void _showHealthOptions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (Platform.isIOS) {
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (sheetContext) => CupertinoActionSheet(
+          title: Text(l10n.healthControl),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _addVaccination(context);
+              },
+              child: Text(l10n.addVaccination),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _addReminder(context);
+              },
+              child: Text(l10n.addReminder),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(sheetContext),
+            child: Text(l10n.cancel),
+          ),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -1486,7 +1505,7 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -1586,7 +1605,7 @@ class _FeedingLogTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.15),
+        backgroundColor: color.withValues(alpha: 0.15),
         child: Icon(_mealIcon(log.mealType), color: color, size: 20),
       ),
       title: Text(log.foodName),

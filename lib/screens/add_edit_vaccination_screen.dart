@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -101,7 +102,7 @@ class _AddEditVaccinationScreenState extends State<AddEditVaccinationScreen> {
                         DateFormat('dd/MM/yyyy').format(_vaccineDate),
                       ),
                       onTap: () async {
-                        final pickedDate = await showDatePicker(
+                        final pickedDate = await showAdaptiveDatePicker(
                           context: context,
                           initialDate: _vaccineDate,
                           firstDate: DateTime(2000),
@@ -126,7 +127,7 @@ class _AddEditVaccinationScreenState extends State<AddEditVaccinationScreen> {
                             : l10n.selectDate,
                       ),
                       onTap: () async {
-                        final pickedDate = await showDatePicker(
+                        final pickedDate = await showAdaptiveDatePicker(
                           context: context,
                           initialDate:
                               _nextDueDate ??

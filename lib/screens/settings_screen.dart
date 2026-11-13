@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
+import 'package:my_pets/utils/pastel_colors.dart';
+import '../utils/adaptive_dialogs.dart';
 import '../providers/pet_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -11,152 +15,332 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final settings = Provider.of<AppSettings>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settings)),
+      appBar: AppBar(
+        title: Text(l10n.settings),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         children: [
-          _buildSectionTitle(context, l10n.themeSettings),
-          SwitchListTile(
-            title: Text(l10n.darkMode),
-            value: settings.isDarkMode,
-            onChanged: (value) => settings.toggleDarkMode(value),
-            secondary: const Icon(Icons.dark_mode),
+          // 1. Appearance / Theme Category Card
+          _buildCategoryCard(
+            context: context,
+            isDark: isDark,
+            backgroundColor: PastelColors.themeCategoryColor(isDark),
+            borderColor: PastelColors.themeCategoryBorder(isDark),
+            icon: Icons.palette_outlined,
+            iconColor: Colors.deepPurple,
+            title: l10n.themeSettings,
+            children: [
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: Text(l10n.darkMode),
+                value: settings.isDarkMode,
+                onChanged: (value) => settings.toggleDarkMode(value),
+                secondary: const Icon(Icons.dark_mode_outlined),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                title: Text(l10n.appTheme),
+                subtitle: Text(
+                  _getThemeName(context, settings.selectedColorScheme),
+                ),
+                trailing: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: _getThemeColor(settings.selectedColorScheme),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: settings.isDarkMode
+                          ? Colors.white24
+                          : Colors.black12,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getThemeColor(settings.selectedColorScheme)
+                            .withValues(alpha: 0.4),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                leading: const Icon(Icons.color_lens_outlined),
+                onTap: () => _showThemePicker(context, settings),
+              ),
+            ],
           ),
-          ListTile(
-            title: Text(l10n.appTheme),
-            subtitle: Text(
-              _getThemeName(context, settings.selectedColorScheme),
-            ),
-            trailing: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: _getThemeColor(settings.selectedColorScheme),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: settings.isDarkMode
-                      ? Colors.black26
-                      : Colors.grey[200]!,
-                  width: 2,
+          const SizedBox(height: 16),
+
+          // 2. General / Preferences Category Card
+          _buildCategoryCard(
+            context: context,
+            isDark: isDark,
+            backgroundColor: PastelColors.generalCategoryColor(isDark),
+            borderColor: PastelColors.generalCategoryBorder(isDark),
+            icon: Icons.tune_outlined,
+            iconColor: Colors.blue,
+            title: l10n.generalSettings,
+            children: [
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: Text(l10n.notifications),
+                value: settings.notificationsEnabled,
+                onChanged: (value) =>
+                    _handleNotificationToggle(context, settings, value, l10n),
+                secondary: const Icon(Icons.notifications_outlined),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: Text(l10n.sound),
+                value: settings.soundEnabled,
+                onChanged: (value) => settings.toggleSound(value),
+                secondary: const Icon(Icons.volume_up_outlined),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                title: Text(l10n.language),
+                subtitle: Text(
+                  _getLanguageSubtitle(context, settings.selectedLanguage),
+                ),
+                leading: const Icon(Icons.language_outlined),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showLanguagePicker(context, settings),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // 3. About & Support Category Card
+          _buildCategoryCard(
+            context: context,
+            isDark: isDark,
+            backgroundColor: PastelColors.aboutCategoryColor(isDark),
+            borderColor: PastelColors.aboutCategoryBorder(isDark),
+            icon: Icons.info_outline,
+            iconColor: Colors.teal,
+            title: l10n.about,
+            children: [
+              ListTile(
+                title: Text(l10n.aboutTheApp),
+                leading: const Icon(Icons.apps_outlined),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showAboutAppDialog(context, l10n),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                title: Text(l10n.contactUs),
+                subtitle: const Text('info@41software.com'),
+                leading: const Icon(Icons.email_outlined),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _launchUrl('mailto:info@41software.com'),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                title: Text(l10n.privacyPolicy),
+                leading: const Icon(Icons.privacy_tip_outlined),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _launchUrl(
+                  'https://www.41software.com/privacy/privacy_mypets.php',
                 ),
               ),
-            ),
-            leading: const Icon(Icons.color_lens),
-            onTap: () => _showThemePicker(context, settings),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                title: Text(l10n.visitWebsite),
+                subtitle: const Text('www.41software.com'),
+                leading: const Icon(Icons.public_outlined),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _launchUrl('https://41software.com'),
+              ),
+            ],
           ),
-          const Divider(),
-          _buildSectionTitle(context, l10n.generalSettings),
-          SwitchListTile(
-            title: Text(l10n.notifications),
-            value: settings.notificationsEnabled,
-            onChanged: (value) => settings.toggleNotifications(value),
-            secondary: const Icon(Icons.notifications),
-          ),
-          SwitchListTile(
-            title: Text(l10n.sound),
-            value: settings.soundEnabled,
-            onChanged: (value) => settings.toggleSound(value),
-            secondary: const Icon(Icons.volume_up),
-          ),
-          ListTile(
-            title: Text(l10n.language),
-            subtitle: Text(
-              settings.selectedLanguage == 'tr'
-                  ? 'Türkçe'
-                  : settings.selectedLanguage == 'de'
-                  ? 'Deutsch'
-                  : 'English',
-            ),
-            leading: const Icon(Icons.language),
-            onTap: () => _showLanguagePicker(context, settings),
-          ),
-          const Divider(),
-          _buildSectionTitle(context, l10n.about),
-          ListTile(
-            title: Text(l10n.aboutTheApp),
-            leading: const Icon(Icons.info),
-            onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationName: 'My Pets',
-                applicationVersion: '1.2.0+3',
-                applicationIcon: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset('assets/logo.png', width: 48, height: 48),
-                ),
-                children: [
-                  Text(l10n.appDescription),
-                  const SizedBox(height: 16),
-                  const Text('Web: www.41software.com'),
-                  const Text('Email: info@41software.com'),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () async {
-                      final Uri url = Uri.parse(
-                        'https://www.41software.com/privacy/privacy_mypets.php',
-                      );
-                      if (!await launchUrl(url)) {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                    child: Text(l10n.privacyPolicy),
+          const SizedBox(height: 16),
+
+          // 4. Data Management Category Card
+          _buildCategoryCard(
+            context: context,
+            isDark: isDark,
+            backgroundColor: PastelColors.dataCategoryColor(isDark),
+            borderColor: PastelColors.dataCategoryBorder(isDark),
+            icon: Icons.storage_outlined,
+            iconColor: Colors.redAccent,
+            title: l10n.dataManagement,
+            children: [
+              ListTile(
+                title: Text(
+                  l10n.deleteAllData,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              );
-            },
+                ),
+                subtitle: Text(l10n.deleteAllDataWarning),
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                onTap: () => _showDeleteAllDataConfirm(context),
+              ),
+            ],
           ),
-          ListTile(
-            title: Text(l10n.contactUs),
-            leading: const Icon(Icons.email),
-            onTap: () => _launchEmail('mailto:info@41software.com'),
-          ),
-          ListTile(
-            title: Text(l10n.privacyPolicy),
-            leading: const Icon(Icons.privacy_tip),
-            onTap: () async {
-              final Uri url = Uri.parse(
-                'https://www.41software.com/privacy/privacy_mypets.php',
-              );
-              if (!await launchUrl(url)) {
-                throw 'Could not launch $url';
-              }
-            },
-          ),
-          const Divider(),
-          _buildSectionTitle(context, l10n.dataManagement),
-          ListTile(
-            title: Text(
-              l10n.deleteAllData,
-              style: const TextStyle(color: Colors.red),
-            ),
-            subtitle: Text(l10n.deleteAllDataWarning),
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            onTap: () => _showDeleteAllDataConfirm(context),
-          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Future<void> _launchEmail(String email) async {
-    final Uri uri = Uri.parse(email);
-    if (!await launchUrl(uri)) {
-      // Fallback if mailto fails
-      debugPrint('Could not launch $email');
+  Widget _buildCategoryCard({
+    required BuildContext context,
+    required bool isDark,
+    required Color backgroundColor,
+    required Color borderColor,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 20, color: iconColor),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+          const SizedBox(height: 6),
+        ],
+      ),
+    );
+  }
+
+  /// iOS shows the notification permission prompt only once. If the user has
+  /// denied it, the switch has to send them to the system settings instead of
+  /// pretending that reminders will arrive.
+  Future<void> _handleNotificationToggle(
+    BuildContext context,
+    AppSettings settings,
+    bool value,
+    AppLocalizations l10n,
+  ) async {
+    if (!value) {
+      settings.toggleNotifications(false);
+      return;
+    }
+
+    final status = await Permission.notification.request();
+    if (!context.mounted) return;
+
+    if (status.isGranted) {
+      settings.toggleNotifications(true);
+      return;
+    }
+
+    settings.toggleNotifications(false);
+    final shouldOpenSettings = await showAdaptiveConfirm(
+      context: context,
+      title: l10n.notifications,
+      message: l10n.notificationsDisabled,
+      cancelLabel: l10n.cancel,
+      confirmLabel: l10n.settings,
+    );
+
+    if (shouldOpenSettings) {
+      await openAppSettings();
     }
   }
 
-  Padding _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+  String _getLanguageSubtitle(BuildContext context, String selectedLanguage) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (selectedLanguage) {
+      case 'tr':
+        return 'Türkçe';
+      case 'de':
+        return 'Deutsch';
+      case 'en':
+        return 'English';
+      case 'system':
+      default:
+        return l10n.deviceLanguage;
+    }
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri uri = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        debugPrint('Could not launch $uri');
+      }
+    } catch (e) {
+      debugPrint('Error launching $uri: $e');
+    }
+  }
+
+  Future<void> _showAboutAppDialog(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (!context.mounted) return;
+    showAboutDialog(
+      context: context,
+      applicationName: 'My Pets',
+      applicationVersion:
+          '${packageInfo.version} (${packageInfo.buildNumber})',
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset('assets/logo.png', width: 52, height: 52),
       ),
+      children: [
+        Text(l10n.appDescription),
+        const SizedBox(height: 16),
+        const Text(
+          '41 Software',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        const Text('Web: www.41software.com'),
+        const Text('Email: info@41software.com'),
+        const SizedBox(height: 16),
+        TextButton(
+          onPressed: () {
+            _launchUrl('https://www.41software.com/privacy/privacy_mypets.php');
+          },
+          child: Text(l10n.privacyPolicy),
+        ),
+      ],
     );
   }
 
@@ -238,6 +422,7 @@ class SettingsScreen extends StatelessWidget {
                     settings.setSelectedColorScheme(scheme);
                     Navigator.of(dialogContext).pop();
                   },
+                  borderRadius: BorderRadius.circular(10),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -246,9 +431,9 @@ class SettingsScreen extends StatelessWidget {
                             : Colors.grey.withValues(alpha: 0.3),
                         width: isSelected ? 2 : 1,
                       ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       color: isSelected
-                          ? themeColor.withValues(alpha: 0.1)
+                          ? themeColor.withValues(alpha: 0.12)
                           : null,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -298,107 +483,109 @@ class SettingsScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(l10n.selectLanguage),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    title: const Text('Türkçe'),
-                    leading: Icon(
-                      settings.selectedLanguage == 'tr'
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                      color: settings.selectedLanguage == 'tr'
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    onTap: () {
-                      settings.setSelectedLanguage('tr');
-                      Navigator.of(dialogContext).pop();
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('English'),
-                    leading: Icon(
-                      settings.selectedLanguage == 'en'
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                      color: settings.selectedLanguage == 'en'
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    onTap: () {
-                      settings.setSelectedLanguage('en');
-                      Navigator.of(dialogContext).pop();
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Deutsch'),
-                    leading: Icon(
-                      settings.selectedLanguage == 'de'
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                      color: settings.selectedLanguage == 'de'
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    onTap: () {
-                      settings.setSelectedLanguage('de');
-                      Navigator.of(dialogContext).pop();
-                    },
-                  ),
-                ],
+        return AlertDialog(
+          title: Text(l10n.selectLanguage),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildLanguageOption(
+                context: context,
+                code: 'system',
+                title: l10n.deviceLanguage,
+                flag: '📱',
+                currentSelection: settings.selectedLanguage,
+                onSelected: () {
+                  settings.setSelectedLanguage('system');
+                  Navigator.of(dialogContext).pop();
+                },
               ),
-            );
-          },
+              const Divider(height: 1),
+              _buildLanguageOption(
+                context: context,
+                code: 'en',
+                title: 'English',
+                flag: '🇬🇧',
+                currentSelection: settings.selectedLanguage,
+                onSelected: () {
+                  settings.setSelectedLanguage('en');
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              const Divider(height: 1),
+              _buildLanguageOption(
+                context: context,
+                code: 'tr',
+                title: 'Türkçe',
+                flag: '🇹🇷',
+                currentSelection: settings.selectedLanguage,
+                onSelected: () {
+                  settings.setSelectedLanguage('tr');
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              const Divider(height: 1),
+              _buildLanguageOption(
+                context: context,
+                code: 'de',
+                title: 'Deutsch',
+                flag: '🇩🇪',
+                currentSelection: settings.selectedLanguage,
+                onSelected: () {
+                  settings.setSelectedLanguage('de');
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  void _showDeleteAllDataConfirm(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteAllData),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.deleteAllDataConfirm),
-            const SizedBox(height: 16),
-            Text(
-              l10n.deleteAllDataWarning,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String code,
+    required String title,
+    required String flag,
+    required String currentSelection,
+    required VoidCallback onSelected,
+  }) {
+    final isSelected = currentSelection == code;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return ListTile(
+      leading: Text(flag, style: const TextStyle(fontSize: 22)),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? primaryColor : null,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              await Provider.of<PetData>(context, listen: false).clearAll();
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(l10n.deleteSuccess)));
-              }
-            },
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
+      trailing: Icon(
+        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        color: isSelected ? primaryColor : null,
+      ),
+      onTap: onSelected,
     );
+  }
+
+  Future<void> _showDeleteAllDataConfirm(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showAdaptiveConfirm(
+      context: context,
+      title: l10n.deleteAllData,
+      message: '${l10n.deleteAllDataConfirm}\n\n${l10n.deleteAllDataWarning}',
+      cancelLabel: l10n.cancel,
+      confirmLabel: l10n.delete,
+      destructive: true,
+    );
+
+    if (!confirmed || !context.mounted) return;
+    await Provider.of<PetData>(context, listen: false).clearAll();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.deleteSuccess)));
   }
 }

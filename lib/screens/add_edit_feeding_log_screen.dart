@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -53,7 +54,7 @@ class _AddEditFeedingLogScreenState extends State<AddEditFeedingLogScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),

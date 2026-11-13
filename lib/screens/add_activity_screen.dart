@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:my_pets/l10n/app_localizations.dart';
 import 'package:my_pets/utils/localization_utils.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -281,7 +282,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),

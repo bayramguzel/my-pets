@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
 
@@ -108,7 +109,7 @@ abstract class BaseDataFormState<T extends BaseDataForm> extends State<T> {
     final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () async {
-        final pickedDate = await showDatePicker(
+        final pickedDate = await showAdaptiveDatePicker(
           context: context,
           initialDate: _selectedDate ?? DateTime.now(),
           firstDate: DateTime(2000),
@@ -205,7 +206,7 @@ class _AddActivityFormState extends BaseDataFormState<AddActivityForm> {
             elevation: 0,
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -336,7 +337,7 @@ class _AddVaccinationFormState extends BaseDataFormState<AddVaccinationForm> {
             elevation: 0,
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -365,7 +366,7 @@ class _AddVaccinationFormState extends BaseDataFormState<AddVaccinationForm> {
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: () async {
-                      final pickedDate = await showDatePicker(
+                      final pickedDate = await showAdaptiveDatePicker(
                         context: context,
                         initialDate:
                             _nextDueDate ??
@@ -476,7 +477,7 @@ class _AddReminderFormState extends BaseDataFormState<AddReminderForm> {
             elevation: 0,
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -505,7 +506,7 @@ class _AddReminderFormState extends BaseDataFormState<AddReminderForm> {
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: () async {
-                      final pickedTime = await showTimePicker(
+                      final pickedTime = await showAdaptiveTimePicker(
                         context: context,
                         initialTime: _selectedTime ?? TimeOfDay.now(),
                       );
@@ -617,7 +618,7 @@ class _AddExpenseFormState extends BaseDataFormState<AddExpenseForm> {
             elevation: 0,
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
 import 'package:my_pets/utils/localization_utils.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import '../utils/share_utils.dart';
 import 'dart:io';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
@@ -21,24 +20,38 @@ class PetListScreen extends StatelessWidget {
     final petData = Provider.of<PetData>(context);
     final settings = Provider.of<AppSettings>(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final isTurkish = locale == 'tr';
-    final titleText = isTurkish ? 'Can Dostlarım' : l10n.myPets;
-    final addPetFriendLabel = isTurkish ? 'Can Dost Ekle' : 'Add Pet Friend';
+    final titleText = l10n.myPets;
+    final addPetFriendLabel = l10n.addPet;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(titleText),
         actions: [
           IconButton(
-            tooltip: isTurkish ? 'Uygulamayı Paylaş' : 'Share App',
+            tooltip: l10n.shareApp,
             icon: const Icon(Icons.share_rounded),
             onPressed: () {
-              const url =
-                  'https://play.google.com/store/apps/details?id=com.vbt.my_pets';
-              final message = isTurkish
-                  ? 'Can dostlarımızın bakımını takip etmek için bu harika uygulamayı denemelisin! \n\n$url'
-                  : 'You should try this great app to keep track of our pet friends\' care! \n\n$url';
-              Share.share(message);
+              final url =
+                  (Platform.isIOS
+                      ? 'https://41software.com'
+                      : 'https://play.google.com/store/apps/details?id=com.software41.mypets');
+              final String message;
+              if (locale == 'tr') {
+                message =
+                    'Can dostlarımızın bakımını takip etmek için bu harika uygulamayı denemelisin! 🐾\n\n$url';
+              } else if (locale == 'de') {
+                message =
+                    'Du solltest diese tolle App ausprobieren, um die Pflege unserer Haustiere im Blick zu behalten! 🐾\n\n$url';
+              } else {
+                message =
+                    'You should try this great app to keep track of your pet friends\' care! 🐾\n\n$url';
+              }
+              SharePlus.instance.share(
+                ShareParams(
+                  text: message,
+                  sharePositionOrigin: sharePositionOriginFor(context),
+                ),
+              );
             },
           ),
           IconButton(
@@ -168,8 +181,9 @@ class PetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final gradient = _getTypeGradient(pet.type);
+    final gradient = _getTypeGradient(pet.type, isDark: isDark);
     final emoji = _getTypeEmoji(pet.type);
 
     return InkWell(
@@ -188,12 +202,14 @@ class PetCard extends StatelessWidget {
           gradient: gradient,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
           ],
-          border: Border.all(color: Colors.black.withOpacity(0.08)),
+          border: Border.all(
+            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.08),
+          ),
         ),
         child: isGrid
             ? Column(
@@ -204,23 +220,29 @@ class PetCard extends StatelessWidget {
                   Text(
                     pet.name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.white.withOpacity(0.95)
+                              : Colors.black87,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${getPetTypeTranslation(context, pet.type)}${pet.breed != null ? ' • ${pet.breed}' : ''}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.7)
+                              : Colors.black54,
+                        ),
                   ),
                   const Spacer(),
                   Text(
                     '${pet.ageInYears} ${l10n.years}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.7)
+                              : Colors.black54,
+                        ),
                   ),
                 ],
               )
@@ -237,61 +259,107 @@ class PetCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.95)
+                                    : Colors.black87,
                               ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${getPetTypeTranslation(context, pet.type)}${pet.breed != null ? ' • ${pet.breed}' : ''}',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.black54),
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.7)
+                                    : Colors.black54,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${pet.ageInYears} ${l10n.years}',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.black54),
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.7)
+                                    : Colors.black54,
+                              ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.black45),
+                  Icon(
+                    Icons.chevron_right,
+                    color: isDark ? Colors.white54 : Colors.grey[400],
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  LinearGradient _getTypeGradient(String type) {
-    switch (type) {
-      case 'dog':
-        return const LinearGradient(
-          colors: [Color(0xFFF6E8DA), Color(0xFFE9D3C0)],
-        );
-      case 'cat':
-        return const LinearGradient(
-          colors: [Color(0xFFF1E5FF), Color(0xFFE0C8FF)],
-        );
-      case 'bird':
-        return const LinearGradient(
-          colors: [Color(0xFFE6F7FF), Color(0xFFCCE9FF)],
-        );
-      case 'rabbit':
-        return const LinearGradient(
-          colors: [Color(0xFFE9FFF2), Color(0xFFCCF5DC)],
-        );
-      case 'hamster':
-        return const LinearGradient(
-          colors: [Color(0xFFFFF2E0), Color(0xFFFFE1B8)],
-        );
-      case 'fish':
-        return const LinearGradient(
-          colors: [Color(0xFFE7F3FF), Color(0xFFD2E6FF)],
-        );
-      default:
-        return const LinearGradient(
-          colors: [Color(0xFFF3F4F6), Color(0xFFE5E7EB)],
-        );
+  LinearGradient _getTypeGradient(String type, {required bool isDark}) {
+    if (isDark) {
+      switch (type) {
+        case 'dog':
+          return const LinearGradient(
+            colors: [Color(0xFF33271D), Color(0xFF261D15)],
+          );
+        case 'cat':
+          return const LinearGradient(
+            colors: [Color(0xFF2C223A), Color(0xFF20182B)],
+          );
+        case 'bird':
+          return const LinearGradient(
+            colors: [Color(0xFF192A3A), Color(0xFF12202E)],
+          );
+        case 'rabbit':
+          return const LinearGradient(
+            colors: [Color(0xFF1E2E24), Color(0xFF15221A)],
+          );
+        case 'hamster':
+          return const LinearGradient(
+            colors: [Color(0xFF33251B), Color(0xFF261A12)],
+          );
+        case 'fish':
+          return const LinearGradient(
+            colors: [Color(0xFF1A2736), Color(0xFF121D29)],
+          );
+        default:
+          return const LinearGradient(
+            colors: [Color(0xFF2B223B), Color(0xFF1E1729)],
+          );
+      }
+    } else {
+      switch (type) {
+        case 'dog':
+          return const LinearGradient(
+            colors: [Color(0xFFF6E8DA), Color(0xFFE9D3C0)],
+          );
+        case 'cat':
+          return const LinearGradient(
+            colors: [Color(0xFFF1E5FF), Color(0xFFE0C8FF)],
+          );
+        case 'bird':
+          return const LinearGradient(
+            colors: [Color(0xFFE6F7FF), Color(0xFFCCE9FF)],
+          );
+        case 'rabbit':
+          return const LinearGradient(
+            colors: [Color(0xFFE9FFF2), Color(0xFFCCF5DC)],
+          );
+        case 'hamster':
+          return const LinearGradient(
+            colors: [Color(0xFFFFF2E0), Color(0xFFFFE1B8)],
+          );
+        case 'fish':
+          return const LinearGradient(
+            colors: [Color(0xFFE7F3FF), Color(0xFFD2E6FF)],
+          );
+        default:
+          return const LinearGradient(
+            colors: [Color(0xFFF3F4F6), Color(0xFFE5E7EB)],
+          );
+      }
     }
   }
 
@@ -373,29 +441,26 @@ class _AdPetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.surface,
-            Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-          ],
-        ),
+        color: isDark ? const Color(0xFF1E2E24) : const Color(0xFFE8F5E9),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 10,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+          color: isDark ? const Color(0xFF3D6149) : const Color(0xFFC8E6C9),
         ),
       ),
-      child: const Center(child: BannerAdWidget(adSize: AdSize.fullBanner)),
+      child: const Center(child: BannerAdWidget()),
     );
   }
 }

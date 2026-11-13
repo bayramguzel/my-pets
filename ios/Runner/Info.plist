@@ -12,6 +12,12 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>en</string>
+			<string>tr</string>
+			<string>de</string>
+		</array>
 		<key>CFBundleName</key>
 		<string>my_pets</string>
 		<key>CFBundlePackageType</key>
@@ -22,8 +28,14 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>My Pets uses the camera so you can take a photo of your pet and use it on the pet's profile. Photos stay on this device.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>My Pets needs access to your photo library so you can choose a photo of your pet for its profile. Photos stay on this device.</string>
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
@@ -47,11 +59,5 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
-		<key>NSCameraUsageDescription</key>
-	<string>This app needs camera access to take photos of your pets.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs photo library access to select photos of your pets.</string>
-	<key>GADApplicationIdentifier</key>
-		<string>ca-app-pub-2100987662328122~9600162300</string>
 	</dict>
 </plist>
