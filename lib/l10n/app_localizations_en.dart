@@ -393,6 +393,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsDisabled => 'Notifications disabled.';
 
   @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get noEmergencyInfo => 'No emergency information added yet.';
+
+  @override
   String get languageSettingsComingSoon => 'Language settings coming soon!';
 
   @override

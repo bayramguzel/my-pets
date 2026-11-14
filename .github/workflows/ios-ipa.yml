@@ -39,6 +39,12 @@ jobs:
       - name: Generate localizations
         run: flutter gen-l10n
 
+      - name: Analyze
+        run: flutter analyze lib test
+
+      - name: Test
+        run: flutter test
+
       - name: Build iOS app (unsigned)
         run: flutter build ios --release --no-codesign
 

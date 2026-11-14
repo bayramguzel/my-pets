@@ -202,13 +202,13 @@ class PetCard extends StatelessWidget {
           gradient: gradient,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
           ],
           border: Border.all(
-            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.08),
+            color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.08),
           ),
         ),
         child: isGrid
@@ -222,7 +222,7 @@ class PetCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark
-                              ? Colors.white.withOpacity(0.95)
+                              ? Colors.white.withValues(alpha: 0.95)
                               : Colors.black87,
                         ),
                   ),
@@ -231,7 +231,7 @@ class PetCard extends StatelessWidget {
                     '${getPetTypeTranslation(context, pet.type)}${pet.breed != null ? ' • ${pet.breed}' : ''}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isDark
-                              ? Colors.white.withOpacity(0.7)
+                              ? Colors.white.withValues(alpha: 0.7)
                               : Colors.black54,
                         ),
                   ),
@@ -240,7 +240,7 @@ class PetCard extends StatelessWidget {
                     '${pet.ageInYears} ${l10n.years}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isDark
-                              ? Colors.white.withOpacity(0.7)
+                              ? Colors.white.withValues(alpha: 0.7)
                               : Colors.black54,
                         ),
                   ),
@@ -260,7 +260,7 @@ class PetCard extends StatelessWidget {
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.95)
+                                    ? Colors.white.withValues(alpha: 0.95)
                                     : Colors.black87,
                               ),
                         ),
@@ -270,7 +270,7 @@ class PetCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.7)
+                                    ? Colors.white.withValues(alpha: 0.7)
                                     : Colors.black54,
                               ),
                         ),
@@ -280,7 +280,7 @@ class PetCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.7)
+                                    ? Colors.white.withValues(alpha: 0.7)
                                     : Colors.black54,
                               ),
                         ),
@@ -391,7 +391,7 @@ class PetCard extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             border: Border.all(color: Colors.white, width: 2),
             image: imageProvider == null
                 ? null
@@ -451,7 +451,7 @@ class _AdPetCard extends StatelessWidget {
         color: isDark ? const Color(0xFF1E2E24) : const Color(0xFFE8F5E9),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

@@ -201,11 +201,11 @@ class SettingsScreen extends StatelessWidget {
     required String title,
     required List<Widget> children,
   }) {
+    // The card uses a Material surface (not a decorated Container) so the
+    // ListTile ink splashes inside it stay visible.
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
@@ -214,9 +214,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Material(
+        color: backgroundColor,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: borderColor, width: 1.2),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: Row(
@@ -239,9 +246,10 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
-          ...children,
-          const SizedBox(height: 6),
-        ],
+            ...children,
+            const SizedBox(height: 6),
+          ],
+        ),
       ),
     );
   }

@@ -123,6 +123,8 @@
   "never": "Nie",
   "notificationsEnabled": "Benachrichtigungen aktiviert.",
   "notificationsDisabled": "Benachrichtigungen deaktiviert.",
+  "copiedToClipboard": "In die Zwischenablage kopiert",
+  "noEmergencyInfo": "Noch keine Notfallinformationen hinterlegt.",
   "languageSettingsComingSoon": "Spracheinstellungen kommen bald!",
   "petManagementApp": "Haustier-Verwaltungs-App",
   "noContentToExplore": "Kein Inhalt zum Entdecken gefunden.",

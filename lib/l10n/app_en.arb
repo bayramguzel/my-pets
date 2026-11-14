@@ -129,6 +129,8 @@
   "never": "Never",
   "notificationsEnabled": "Notifications enabled.",
   "notificationsDisabled": "Notifications disabled.",
+  "copiedToClipboard": "Copied to clipboard",
+  "noEmergencyInfo": "No emergency information added yet.",
   "languageSettingsComingSoon": "Language settings coming soon!",
   "petManagementApp": "Pet Management App",
   "noContentToExplore": "No content to explore found.",

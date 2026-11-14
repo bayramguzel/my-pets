@@ -123,6 +123,8 @@
   "never": "Asla",
   "notificationsEnabled": "Bildirimler açıldı.",
   "notificationsDisabled": "Bildirimler kapatıldı.",
+  "copiedToClipboard": "Panoya kopyalandı",
+  "noEmergencyInfo": "Henüz acil durum bilgisi eklenmedi.",
   "languageSettingsComingSoon": "Dil ayarları yakında gelecek!",
   "petManagementApp": "Evcil Hayvan Yönetim Uygulaması",
   "noContentToExplore": "Keşfedilecek içerik bulunamadı.",

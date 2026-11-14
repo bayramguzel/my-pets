@@ -22,7 +22,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => AppSettings()),
           ChangeNotifierProvider(create: (_) => ExploreData()),
         ],
-        child: MyPetsApp(),
+        child: const MyPetsApp(showSplash: false),
       ),
     );
 

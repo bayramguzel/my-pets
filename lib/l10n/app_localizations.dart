@@ -856,6 +856,18 @@ abstract class AppLocalizations {
   /// **'Notifications disabled.'**
   String get notificationsDisabled;
 
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @noEmergencyInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'No emergency information added yet.'**
+  String get noEmergencyInfo;
+
   /// No description provided for @languageSettingsComingSoon.
   ///
   /// In en, this message translates to:

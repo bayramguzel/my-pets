@@ -393,6 +393,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notificationsDisabled => 'Bildirimler kapatıldı.';
 
   @override
+  String get copiedToClipboard => 'Panoya kopyalandı';
+
+  @override
+  String get noEmergencyInfo => 'Henüz acil durum bilgisi eklenmedi.';
+
+  @override
   String get languageSettingsComingSoon => 'Dil ayarları yakında gelecek!';
 
   @override
