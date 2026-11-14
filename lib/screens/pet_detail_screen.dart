@@ -551,7 +551,7 @@ class _PetDetailScreenState extends State<PetDetailScreen>
                       ),
                     ),
                   ),
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
                     value: reminder.isActive,
                     onChanged: (value) {
                       final updatedReminder = HealthReminder(
@@ -1750,32 +1750,18 @@ class _FoodPreferenceTile extends StatelessWidget {
             ),
           ),
           PopupMenuButton<String>(
-            onSelected: (v) {
+            onSelected: (v) async {
               if (v == 'edit') onEdit();
               if (v == 'delete') {
-                showDialog(
+                final confirmed = await showAdaptiveConfirm(
                   context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: Text(l10n.deleteFoodPreference),
-                    content: Text(preference.foodName),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          onDelete();
-                        },
-                        child: Text(
-                          l10n.delete,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
+                  title: l10n.deleteFoodPreference,
+                  message: preference.foodName,
+                  cancelLabel: l10n.cancel,
+                  confirmLabel: l10n.delete,
+                  destructive: true,
                 );
+                if (confirmed) onDelete();
               }
             },
             itemBuilder: (_) => [

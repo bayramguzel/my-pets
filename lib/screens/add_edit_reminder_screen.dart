@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../notification_service.dart';
+import '../utils/adaptive_dialogs.dart';
 import '../utils/adaptive_pickers.dart';
 import '../models/pet_models.dart';
 import '../providers/pet_provider.dart';
@@ -146,8 +149,28 @@ class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_formKey.currentState!.validate()) {
+                  // iOS only shows the notification prompt once, so ask when a
+                  // reminder is actually created and offer the system settings
+                  // if it was denied earlier.
+                  final granted = await NotificationService()
+                      .requestPermissions();
+                  if (!mounted) return;
+                  if (!granted) {
+                    final openSettings = await showAdaptiveConfirm(
+                      context: context,
+                      title: l10n.notifications,
+                      message: l10n.notificationsDisabled,
+                      cancelLabel: l10n.cancel,
+                      confirmLabel: l10n.settings,
+                    );
+                    if (openSettings) {
+                      await openAppSettings();
+                    }
+                    if (!mounted) return;
+                  }
+
                   final reminder = HealthReminder(
                     id:
                         widget.reminder?.id ??

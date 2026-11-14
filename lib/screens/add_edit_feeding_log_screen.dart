@@ -220,14 +220,16 @@ class _AddEditFeedingLogScreenState extends State<AddEditFeedingLogScreen> {
 
               // ── Eaten switch ─────────────────────────────────────────────
               Card(
-                child: SwitchListTile(
+                child: ListTile(
                   title: Text(l10n.eaten),
-                  value: _isEaten,
-                  secondary: Icon(
+                  leading: Icon(
                     _isEaten ? Icons.check_circle : Icons.cancel,
                     color: _isEaten ? Colors.green : Colors.red,
                   ),
-                  onChanged: (v) => setState(() => _isEaten = v),
+                  trailing: Switch.adaptive(
+                    value: _isEaten,
+                    onChanged: (v) => setState(() => _isEaten = v),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),

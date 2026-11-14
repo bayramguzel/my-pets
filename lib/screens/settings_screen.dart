@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,12 +36,13 @@ class SettingsScreen extends StatelessWidget {
             iconColor: Colors.deepPurple,
             title: l10n.themeSettings,
             children: [
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.darkMode),
-                value: settings.isDarkMode,
-                onChanged: (value) => settings.toggleDarkMode(value),
-                secondary: const Icon(Icons.dark_mode_outlined),
+                title: Text(l10n.appearance),
+                subtitle: Text(_themeModeName(context, settings.themeMode)),
+                leading: const Icon(Icons.brightness_6_outlined),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showThemeModePicker(context, settings),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
@@ -54,9 +57,7 @@ class SettingsScreen extends StatelessWidget {
                     color: _getThemeColor(settings.selectedColorScheme),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: settings.isDarkMode
-                          ? Colors.white24
-                          : Colors.black12,
+                      color: isDark ? Colors.white24 : Colors.black12,
                       width: 2,
                     ),
                     boxShadow: [
@@ -86,21 +87,25 @@ class SettingsScreen extends StatelessWidget {
             iconColor: Colors.blue,
             title: l10n.generalSettings,
             children: [
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.notifications),
-                value: settings.notificationsEnabled,
-                onChanged: (value) =>
-                    _handleNotificationToggle(context, settings, value, l10n),
-                secondary: const Icon(Icons.notifications_outlined),
+                leading: const Icon(Icons.notifications_outlined),
+                trailing: Switch.adaptive(
+                  value: settings.notificationsEnabled,
+                  onChanged: (value) =>
+                      _handleNotificationToggle(context, settings, value, l10n),
+                ),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.sound),
-                value: settings.soundEnabled,
-                onChanged: (value) => settings.toggleSound(value),
-                secondary: const Icon(Icons.volume_up_outlined),
+                leading: const Icon(Icons.volume_up_outlined),
+                trailing: Switch.adaptive(
+                  value: settings.soundEnabled,
+                  onChanged: (value) => settings.toggleSound(value),
+                ),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
@@ -352,6 +357,54 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  String _themeModeName(BuildContext context, ThemeMode mode) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (mode) {
+      case ThemeMode.light:
+        return l10n.lightMode;
+      case ThemeMode.dark:
+        return l10n.darkMode;
+      case ThemeMode.system:
+        return l10n.systemAppearance;
+    }
+  }
+
+  Future<void> _showThemeModePicker(
+    BuildContext context,
+    AppSettings settings,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final mode = await showAdaptiveChoiceSheet<ThemeMode>(
+      context: context,
+      title: l10n.appearance,
+      cancelLabel: l10n.cancel,
+      choices: [
+        AdaptiveChoice(
+          value: ThemeMode.system,
+          label: l10n.systemAppearance,
+          leading: const Icon(Icons.brightness_auto_outlined),
+          selected: settings.themeMode == ThemeMode.system,
+        ),
+        AdaptiveChoice(
+          value: ThemeMode.light,
+          label: l10n.lightMode,
+          leading: const Icon(Icons.light_mode_outlined),
+          selected: settings.themeMode == ThemeMode.light,
+        ),
+        AdaptiveChoice(
+          value: ThemeMode.dark,
+          label: l10n.darkMode,
+          leading: const Icon(Icons.dark_mode_outlined),
+          selected: settings.themeMode == ThemeMode.dark,
+        ),
+      ],
+    );
+
+    if (mode != null) {
+      settings.setThemeMode(mode);
+    }
+  }
+
   String _getThemeName(BuildContext context, AppColorScheme scheme) {
     final l10n = AppLocalizations.of(context)!;
     switch (scheme) {
@@ -405,6 +458,34 @@ class SettingsScreen extends StatelessWidget {
 
   void _showThemePicker(BuildContext context, AppSettings settings) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (Platform.isIOS) {
+      showAdaptiveChoiceSheet<AppColorScheme>(
+        context: context,
+        title: l10n.selectTheme,
+        cancelLabel: l10n.cancel,
+        choices: [
+          for (final scheme in AppColorScheme.values)
+            AdaptiveChoice(
+              value: scheme,
+              label: _getThemeName(context, scheme),
+              selected: settings.selectedColorScheme == scheme,
+              leading: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: _getThemeColor(scheme),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ).then((choice) {
+        if (choice != null) settings.setSelectedColorScheme(choice);
+      });
+      return;
+    }
+
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -488,6 +569,44 @@ class SettingsScreen extends StatelessWidget {
 
   void _showLanguagePicker(BuildContext context, AppSettings settings) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (Platform.isIOS) {
+      showAdaptiveChoiceSheet<String>(
+        context: context,
+        title: l10n.selectLanguage,
+        cancelLabel: l10n.cancel,
+        choices: [
+          AdaptiveChoice(
+            value: 'system',
+            label: l10n.deviceLanguage,
+            leading: const Text('📱', style: TextStyle(fontSize: 20)),
+            selected: settings.selectedLanguage == 'system',
+          ),
+          AdaptiveChoice(
+            value: 'en',
+            label: 'English',
+            leading: const Text('🇬🇧', style: TextStyle(fontSize: 20)),
+            selected: settings.selectedLanguage == 'en',
+          ),
+          AdaptiveChoice(
+            value: 'tr',
+            label: 'Türkçe',
+            leading: const Text('🇹🇷', style: TextStyle(fontSize: 20)),
+            selected: settings.selectedLanguage == 'tr',
+          ),
+          AdaptiveChoice(
+            value: 'de',
+            label: 'Deutsch',
+            leading: const Text('🇩🇪', style: TextStyle(fontSize: 20)),
+            selected: settings.selectedLanguage == 'de',
+          ),
+        ],
+      ).then((code) {
+        if (code != null) settings.setSelectedLanguage(code);
+      });
+      return;
+    }
+
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {

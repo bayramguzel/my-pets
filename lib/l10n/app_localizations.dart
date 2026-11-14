@@ -868,6 +868,24 @@ abstract class AppLocalizations {
   /// **'No emergency information added yet.'**
   String get noEmergencyInfo;
 
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @systemAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device setting'**
+  String get systemAppearance;
+
+  /// No description provided for @lightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get lightMode;
+
   /// No description provided for @languageSettingsComingSoon.
   ///
   /// In en, this message translates to:

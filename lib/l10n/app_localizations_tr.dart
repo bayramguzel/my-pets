@@ -399,6 +399,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noEmergencyInfo => 'Henüz acil durum bilgisi eklenmedi.';
 
   @override
+  String get appearance => 'Görünüm';
+
+  @override
+  String get systemAppearance => 'Cihaz ayarını kullan';
+
+  @override
+  String get lightMode => 'Açık';
+
+  @override
   String get languageSettingsComingSoon => 'Dil ayarları yakında gelecek!';
 
   @override

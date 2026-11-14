@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_pets/l10n/app_localizations.dart';
@@ -8,6 +10,7 @@ import 'notification_service.dart';
 import 'providers/pet_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/pet_detail_screen.dart';
 import 'widgets/app_gradient_background.dart';
 
 /// Simple Microsoft Clarity integration helper.
@@ -61,15 +64,66 @@ void main() async {
   );
 }
 
-class MyPetsApp extends StatelessWidget {
+class MyPetsApp extends StatefulWidget {
   final bool showSplash;
   const MyPetsApp({super.key, required this.showSplash});
+
+  @override
+  State<MyPetsApp> createState() => _MyPetsAppState();
+}
+
+class _MyPetsAppState extends State<MyPetsApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  Timer? _payloadRetry;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService().pendingPayload.addListener(_openPetFromNotification);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _openPetFromNotification(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _payloadRetry?.cancel();
+    NotificationService().pendingPayload.removeListener(
+      _openPetFromNotification,
+    );
+    super.dispose();
+  }
+
+  /// Opens the pet a tapped reminder notification refers to.
+  void _openPetFromNotification() {
+    final payload = NotificationService().pendingPayload.value;
+    if (payload == null || payload.isEmpty) return;
+
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+
+    final pet = context.read<PetData>().getPetById(payload);
+    if (pet == null) {
+      // Pet data may still be loading right after a cold start.
+      _payloadRetry?.cancel();
+      _payloadRetry = Timer(const Duration(seconds: 2), () {
+        if (mounted) _openPetFromNotification();
+      });
+      return;
+    }
+
+    NotificationService().pendingPayload.value = null;
+    navigator.push(
+      MaterialPageRoute(builder: (context) => PetDetailScreen(pet: pet)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(
       builder: (context, settings, child) {
         return MaterialApp(
+          navigatorKey: _navigatorKey,
           title: 'My Pets',
           debugShowCheckedModeBanner: false,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -93,10 +147,10 @@ class MyPetsApp extends StatelessWidget {
           },
           theme: _buildLightTheme(settings.selectedColorScheme),
           darkTheme: _buildDarkTheme(settings.selectedColorScheme),
-          themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          themeMode: settings.themeMode,
           builder: (context, child) =>
               AppGradientBackground(child: child ?? const SizedBox.shrink()),
-          home: showSplash
+          home: widget.showSplash
               ? const SplashScreen()
               : const MainNavigationScreen(),
         );
@@ -158,6 +212,16 @@ class MyPetsApp extends StatelessWidget {
         centerTitle: false, // Left-aligned app bar titles
         foregroundColor: scheme.onSurface,
         iconTheme: IconThemeData(color: scheme.onSurface),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          // iOS reads the background brightness, Android the icon brightness.
+          statusBarBrightness: scheme.brightness == Brightness.dark
+              ? Brightness.dark
+              : Brightness.light,
+          statusBarIconBrightness: scheme.brightness == Brightness.dark
+              ? Brightness.light
+              : Brightness.dark,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
@@ -277,6 +341,16 @@ class MyPetsApp extends StatelessWidget {
         centerTitle: false, // Left-aligned app bar titles
         foregroundColor: scheme.onSurface,
         iconTheme: IconThemeData(color: scheme.onSurface),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          // iOS reads the background brightness, Android the icon brightness.
+          statusBarBrightness: scheme.brightness == Brightness.dark
+              ? Brightness.dark
+              : Brightness.light,
+          statusBarIconBrightness: scheme.brightness == Brightness.dark
+              ? Brightness.light
+              : Brightness.dark,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,

@@ -19,6 +19,7 @@ class PetListScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final petData = Provider.of<PetData>(context);
     final settings = Provider.of<AppSettings>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final locale = Localizations.localeOf(context).languageCode;
     final titleText = l10n.myPets;
     final addPetFriendLabel = l10n.addPet;
@@ -55,14 +56,14 @@ class PetListScreen extends StatelessWidget {
             },
           ),
           IconButton(
-            tooltip: settings.isDarkMode ? 'Light Mode' : 'Dark Mode',
+            tooltip: isDark ? l10n.lightMode : l10n.darkMode,
             icon: Icon(
-              settings.isDarkMode
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
             ),
             onPressed: () {
-              settings.toggleDarkMode(!settings.isDarkMode);
+              settings.setThemeMode(
+                isDark ? ThemeMode.light : ThemeMode.dark,
+              );
             },
           ),
           IconButton(

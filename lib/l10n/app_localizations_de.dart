@@ -399,6 +399,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noEmergencyInfo => 'Noch keine Notfallinformationen hinterlegt.';
 
   @override
+  String get appearance => 'Darstellung';
+
+  @override
+  String get systemAppearance => 'Geräteeinstellung verwenden';
+
+  @override
+  String get lightMode => 'Hell';
+
+  @override
   String get languageSettingsComingSoon => 'Spracheinstellungen kommen bald!';
 
   @override

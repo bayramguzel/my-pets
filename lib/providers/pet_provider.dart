@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../notification_service.dart';
 import '../models/pet_models.dart';
 
 enum AppColorScheme {
@@ -321,6 +322,8 @@ class PetData extends ChangeNotifier {
     _feedingLogs.clear();
     _foodPreferences.clear();
 
+    await NotificationService().cancelAllNotifications();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
@@ -408,6 +411,7 @@ class PetData extends ChangeNotifier {
   void addReminder(HealthReminder reminder) {
     _reminders.add(reminder);
     _saveToStorage();
+    _scheduleReminderNotification(reminder);
     notifyListeners();
   }
 
@@ -418,6 +422,7 @@ class PetData extends ChangeNotifier {
     if (index != -1) {
       _reminders[index] = updatedReminder;
       _saveToStorage();
+      _scheduleReminderNotification(updatedReminder);
       notifyListeners();
     }
   }
@@ -426,8 +431,58 @@ class PetData extends ChangeNotifier {
     _reminders.removeWhere(
       (HealthReminder reminder) => reminder.id == reminderId,
     );
+    NotificationService().cancelNotification(
+      NotificationService.notificationIdFor(reminderId),
+    );
     _saveToStorage();
     notifyListeners();
+  }
+
+  /// Keeps the scheduled system notification in sync with a reminder.
+  void _scheduleReminderNotification(HealthReminder reminder) {
+    final service = NotificationService();
+    final id = NotificationService.notificationIdFor(reminder.id);
+    service.cancelNotification(id);
+    if (!reminder.isActive) return;
+
+    final scheduled = DateTime(
+      reminder.reminderDate.year,
+      reminder.reminderDate.month,
+      reminder.reminderDate.day,
+      reminder.reminderTime.hour,
+      reminder.reminderTime.minute,
+    );
+    final petName = getPetById(reminder.petId)?.name;
+    final body = petName == null || petName.isEmpty
+        ? reminder.title
+        : petName;
+
+    final interval = switch (reminder.repeatType) {
+      'daily' => RepeatInterval.daily,
+      'weekly' => RepeatInterval.weekly,
+      'monthly' => RepeatInterval.monthly,
+      'yearly' => RepeatInterval.yearly,
+      _ => RepeatInterval.none,
+    };
+
+    if (interval == RepeatInterval.none) {
+      service.scheduleReminder(
+        id: id,
+        title: reminder.title,
+        body: body,
+        scheduledDate: scheduled,
+        payload: reminder.petId,
+      );
+    } else {
+      service.scheduleRecurringReminder(
+        id: id,
+        title: reminder.title,
+        body: body,
+        initialDate: scheduled,
+        repeatInterval: interval,
+        payload: reminder.petId,
+      );
+    }
   }
 
   List<HealthReminder> getRemindersForPet(String petId) {
@@ -565,6 +620,7 @@ class PetData extends ChangeNotifier {
 
 class AppSettings extends ChangeNotifier {
   bool _isDarkMode;
+  ThemeMode _themeMode;
   bool _notificationsEnabled;
   bool _soundEnabled;
   AppColorScheme _selectedColorScheme;
@@ -572,6 +628,7 @@ class AppSettings extends ChangeNotifier {
 
   AppSettings()
     : _isDarkMode = false,
+      _themeMode = ThemeMode.system,
       _notificationsEnabled = true,
       _soundEnabled = false,
       _selectedColorScheme = AppColorScheme.defaultTheme,
@@ -580,6 +637,7 @@ class AppSettings extends ChangeNotifier {
   }
 
   bool get isDarkMode => _isDarkMode;
+  ThemeMode get themeMode => _themeMode;
   bool get notificationsEnabled => _notificationsEnabled;
   bool get soundEnabled => _soundEnabled;
   AppColorScheme get selectedColorScheme => _selectedColorScheme;
@@ -589,6 +647,15 @@ class AppSettings extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      // Devices follow the system appearance until the user picks a mode.
+      _themeMode = switch (prefs.getString('themeMode')) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        'system' => ThemeMode.system,
+        _ => prefs.containsKey('isDarkMode')
+            ? (prefs.getBool('isDarkMode')! ? ThemeMode.dark : ThemeMode.light)
+            : ThemeMode.system,
+      };
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
       _soundEnabled = prefs.getBool('soundEnabled') ?? false;
       _selectedColorScheme =
@@ -604,6 +671,7 @@ class AppSettings extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isDarkMode', _isDarkMode);
+      await prefs.setString('themeMode', _themeMode.name);
       await prefs.setBool('notificationsEnabled', _notificationsEnabled);
       await prefs.setBool('soundEnabled', _soundEnabled);
       await prefs.setInt('selectedColorScheme', _selectedColorScheme.index);
@@ -614,8 +682,15 @@ class AppSettings extends ChangeNotifier {
   }
 
   void toggleDarkMode(bool value) {
-    if (_isDarkMode != value) {
-      _isDarkMode = value;
+    setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    if (_themeMode != mode) {
+      _themeMode = mode;
+      if (mode != ThemeMode.system) {
+        _isDarkMode = mode == ThemeMode.dark;
+      }
       _saveToStorage();
       notifyListeners();
     }

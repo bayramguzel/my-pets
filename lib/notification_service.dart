@@ -12,18 +12,20 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Pet id from a tapped notification, consumed by the app shell to open the
+  /// related pet.
+  final ValueNotifier<String?> pendingPayload = ValueNotifier<String?>(null);
+
   Future<void> initialize() async {
     tz.initializeTimeZones();
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
+    // Permissions are requested when the user actually creates a reminder
+    // instead of on first launch, which matches iOS notification guidelines.
     const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
+        DarwinInitializationSettings();
 
     const InitializationSettings initializationSettings =
         InitializationSettings(
@@ -35,6 +37,13 @@ class NotificationService {
       settings: initializationSettings,
       onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
     );
+
+    // A tap can also be what launched the app from a terminated state.
+    final launchDetails = await _flutterLocalNotificationsPlugin
+        .getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      pendingPayload.value = launchDetails?.notificationResponse?.payload;
+    }
     // Request permissions for Android 13+
     if (Platform.isAndroid) {
       await _flutterLocalNotificationsPlugin
@@ -45,13 +54,52 @@ class NotificationService {
     }
   }
 
+  /// Stable notification id for a reminder. Android only accepts 32-bit ids,
+  /// so the numeric part of the reminder id is folded into that range.
+  static int notificationIdFor(String reminderId) {
+    final digits = reminderId.replaceAll(RegExp(r'[^0-9]'), '');
+    final parsed = int.tryParse(digits);
+    if (parsed != null) {
+      return parsed % 2147483647;
+    }
+    return reminderId.hashCode & 0x7fffffff;
+  }
+
+  /// Asks for notification permission at the moment it is needed.
+  Future<bool> requestPermissions() async {
+    try {
+      final ios = _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) {
+        final granted = await ios.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return granted ?? false;
+      }
+      if (Platform.isAndroid) {
+        final android = _flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+        return await android?.requestNotificationsPermission() ?? true;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error requesting notification permissions: $e');
+      return true;
+    }
+  }
+
   void _onDidReceiveNotificationResponse(
     NotificationResponse notificationResponse,
   ) {
     final String? payload = notificationResponse.payload;
     if (payload != null && payload.isNotEmpty) {
-      debugPrint('Notification payload: $payload');
-      // Handle notification tap
+      pendingPayload.value = payload;
     }
   }
 

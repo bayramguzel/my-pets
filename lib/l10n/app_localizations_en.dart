@@ -399,6 +399,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noEmergencyInfo => 'No emergency information added yet.';
 
   @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get systemAppearance => 'Use device setting';
+
+  @override
+  String get lightMode => 'Light';
+
+  @override
   String get languageSettingsComingSoon => 'Language settings coming soon!';
 
   @override
